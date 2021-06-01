@@ -64,3 +64,4 @@ CATKIN_IGNORE
 
 # ROS
 *.bak
+.catkin_tools
