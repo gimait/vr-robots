@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: icub_model
+    relative_path: urdf/iCub.urdf
+    xacro_args: ""
+  SRDF:
+    relative_path: config/iCub.srdf
+  CONFIG:
+    author_name: Aitor Miguel Blanco
+    author_email: aitor.miguelblanco@mq.edu.au
+    generated_timestamp: 1622595154
