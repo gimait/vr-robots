@@ -1,6 +1,6 @@
 <package>
 
-  <name>iCub_moveit</name>
+  <name>icub_moveit</name>
   <version>0.3.0</version>
   <description>
      An automatically generated package with all the configuration and launch files for using the iCub with the MoveIt Motion Planning Framework

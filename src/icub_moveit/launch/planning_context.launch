@@ -9,17 +9,17 @@
   <param if="$(arg load_robot_description)" name="$(arg robot_description)" textfile="$(find icub_model)/urdf/iCub.urdf"/>
 
   <!-- The semantic description that corresponds to the URDF -->
-  <param name="$(arg robot_description)_semantic" textfile="$(find iCub_moveit)/config/iCub.srdf" />
+  <param name="$(arg robot_description)_semantic" textfile="$(find icub_moveit)/config/iCub.srdf" />
 
   <!-- Load updated joint limits (override information from URDF) -->
   <group ns="$(arg robot_description)_planning">
-    <rosparam command="load" file="$(find iCub_moveit)/config/joint_limits.yaml"/>
-    <rosparam command="load" file="$(find iCub_moveit)/config/cartesian_limits.yaml"/>
+    <rosparam command="load" file="$(find icub_moveit)/config/joint_limits.yaml"/>
+    <rosparam command="load" file="$(find icub_moveit)/config/cartesian_limits.yaml"/>
   </group>
 
   <!-- Load default settings for kinematics; these settings are overridden by settings in a node's namespace -->
   <group ns="$(arg robot_description)_kinematics">
-    <rosparam command="load" file="$(find iCub_moveit)/config/kinematics.yaml"/>
+    <rosparam command="load" file="$(find icub_moveit)/config/kinematics.yaml"/>
 
   </group>
 
