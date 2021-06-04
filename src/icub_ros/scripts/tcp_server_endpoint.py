@@ -2,8 +2,10 @@
 
 import rospy
 
-from ros_tcp_endpoint import TcpServer, RosPublisher
+from ros_tcp_endpoint import TcpServer, RosPublisher, RosService, RosSubscriber
 from icub_ros.msg import Target
+from icub_ros.srv import MoveService
+from moveit_msgs.msg import RobotTrajectory
 
 
 def main():
@@ -15,6 +17,8 @@ def main():
 
     tcp_server.start({
         'target_position': RosPublisher('target_position', Target, queue_size=10),
+        'Trajectory': RosSubscriber('NiryoTrajectory', RobotTrajectory, tcp_server),
+        'icub_moveit': RosService('icub_moveit', MoveService),
     })
 
     rospy.spin()

@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   ros_tcp_endpoint
   message_generation
+  moveit_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -50,10 +51,13 @@ find_package(catkin REQUIRED COMPONENTS
 
 add_message_files(DIRECTORY msg)
 
+add_service_files(DIRECTORY srv)
+
 generate_messages(
   DEPENDENCIES
   geometry_msgs
   std_msgs
+  moveit_msgs
 )
 
 
