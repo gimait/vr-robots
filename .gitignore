@@ -69,3 +69,4 @@ CATKIN_IGNORE
 # Unity
 *meta
 *asset
+*.mat
