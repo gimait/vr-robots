@@ -15,13 +15,20 @@
   <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
   <license>TODO</license>
 
+  <build_depend>roscpp</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>ros_tcp_endpoint</build_depend>
+  <build_depend>moveit_core</build_depend>
+  <build_depend>moveit_ros_planning</build_depend>
+  <build_depend>moveit_ros_planning_interface</build_depend>
 
   <build_export_depend>ros_tcp_endpoint</build_export_depend>
 
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>ros_tcp_endpoint</exec_depend>
+  <exec_depend>moveit_core</exec_depend>
+  <exec_depend>moveit_commander</exec_depend>
+  <exec_depend>moveit_ros_planning_interface</exec_depend>
 
   <buildtool_depend>catkin</buildtool_depend>
 

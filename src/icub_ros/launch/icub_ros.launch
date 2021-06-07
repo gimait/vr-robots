@@ -1,4 +1,9 @@
 <launch>
+    <rosparam file="$(find icub_ros)/config/params.yaml" command="load"/>
+    <arg name="execution_type" default="interpolate" />
+    <arg name="debug" default="false" />
+    <arg name="pipeline" default="ompl" />
+    <arg name="load_robot_description" default="true"/>
 
     <env name="ROS_IP" value="127.0.0.1"/>
     <env name="ROS_HOSTNAME" value="$(env ROS_IP)"/>
@@ -12,7 +17,16 @@
     <param name="UNITY_IP" type="str" value=".127.0.0.1" />
     <param name="UNITY_SERVER_PORT" type="int" value="5005" />
 
-	<group ns="position_service_and_endpoint">
-	       <node pkg="icub_ros" name="server_endpoint" type="server_endpoint.py"/>
-	</group>
+    <include file="$(find icub_moveit)/launch/move_group.launch">
+        <arg name="allow_trajectory_execution" value="true"/>
+        <arg name="fake_execution" value="true"/>
+        <arg name="execution_type" value="$(arg execution_type)"/>
+        <arg name="info" value="true"/>
+        <arg name="debug" value="$(arg debug)"/>
+        <arg name="pipeline" value="$(arg pipeline)"/>
+        <arg name="load_robot_description" value="$(arg load_robot_description)"/>
+    </include>
+    <node pkg="icub_ros" name="tcp_server_endpoint" type="tcp_server_endpoint.py"/>
+    <node pkg="icub_ros" name="icub_trajectory_planner" type="icub_trajectory_planner" />
+
 </launch>

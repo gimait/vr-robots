@@ -1,4 +1,5 @@
-float64[] joints
+string[] joint_names
+float64[] joint_positions
 Target target_object
 ---
 moveit_msgs/RobotTrajectory[] trajectories
