@@ -5,7 +5,7 @@
 - git:
     local-name: moveit
     uri: https://github.com/ros-planning/moveit.git
-    version: master
+    version: noetic-devel
 - git:
     local-name: moveit_msgs
     uri: https://github.com/ros-planning/moveit_msgs.git
@@ -17,7 +17,7 @@
 - git:
     local-name: moveit_visual_tools
     uri: https://github.com/ros-planning/moveit_visual_tools.git
-    version: master
+    version: noetic-devel
 - git:
     local-name: panda_moveit_config
     uri: https://github.com/ros-planning/panda_moveit_config.git

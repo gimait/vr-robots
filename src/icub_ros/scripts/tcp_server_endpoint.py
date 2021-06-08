@@ -17,7 +17,7 @@ def main():
 
     tcp_server.start({
         'target_position': RosPublisher('target_position', Target, queue_size=10),
-        'Trajectory': RosSubscriber('NiryoTrajectory', RobotTrajectory, tcp_server),
+        'Trajectory': RosSubscriber('iCubTrajectory', RobotTrajectory, tcp_server),
         'icub_moveit': RosService('icub_trajectory_planner/plan_trajectory', MoveService),
     })
 

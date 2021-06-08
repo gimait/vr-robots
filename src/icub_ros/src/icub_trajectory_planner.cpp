@@ -46,6 +46,16 @@ bool TrajectoryPlanner::planTrajectoryService(icub_ros::MoveService::Request &re
   target.position.y = req.target_object.y;
   target.position.z = req.target_object.z;
 
+  ROS_INFO_NAMED("tutorial", "Planning frame: %s", move_group_interface->getPlanningFrame().c_str());
+
+  // We can also print the name of the end-effector link for this group.
+  ROS_INFO_NAMED("tutorial", "End effector link: %s", move_group_interface->getEndEffectorLink().c_str());
+
+  // We can get a list of all the groups in the robot:
+  ROS_INFO_NAMED("tutorial", "Available Planning Groups:");
+  std::copy(move_group_interface->getJointModelGroupNames().begin(),
+            move_group_interface->getJointModelGroupNames().end(), std::ostream_iterator<std::string>(std::cout, ", "));
+
   move_group_interface->setStartState(rs);
   move_group_interface->setPoseTarget(target);
 
