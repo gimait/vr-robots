@@ -52,4 +52,71 @@ joint_state_controller:
   type: joint_state_controller/JointStateController
   publish_rate: 50
 controller_list:
-  []
+  - name: Head_controller
+    action_ns: follow_joint_trajectory
+    default: True
+    type: FollowJointTrajectory
+    joints:
+      - neck_pitch
+      - neck_roll
+      - neck_yaw
+  - name: LeftEye_controller
+    action_ns: follow_joint_trajectory
+    default: True
+    type: FollowJointTrajectory
+    joints:
+      - eye_l_yaw
+      - eye_l_pitch
+  - name: RightEye_controller
+    action_ns: follow_joint_trajectory
+    default: True
+    type: FollowJointTrajectory
+    joints:
+      - eye_r_yaw
+      - eye_r_pitch
+  - name: LeftArm_controller
+    action_ns: follow_joint_trajectory
+    default: True
+    type: FollowJointTrajectory
+    joints:
+      - l_shoulder_pitch
+      - l_shoulder_roll
+      - l_shoulder_yaw
+      - l_elbow
+      - l_wrist_prosup
+      - l_wrist_pitch
+      - l_wrist_yaw
+  - name: RightArm_controller
+    action_ns: follow_joint_trajectory
+    default: True
+    type: FollowJointTrajectory
+    joints:
+      - r_shoulder_pitch
+      - r_shoulder_roll
+      - r_shoulder_yaw
+      - r_elbow
+      - r_wrist_prosup
+      - r_wrist_pitch
+      - r_wrist_yaw
+  - name: LeftLeg_controller
+    action_ns: follow_joint_trajectory
+    default: True
+    type: FollowJointTrajectory
+    joints:
+      - l_hip_pitch
+      - l_hip_roll
+      - l_hip_yaw
+      - l_knee
+      - l_ankle_pitch
+      - l_ankle_roll
+  - name: RightLeg_controller
+    action_ns: follow_joint_trajectory
+    default: True
+    type: FollowJointTrajectory
+    joints:
+      - r_hip_pitch
+      - r_hip_roll
+      - r_hip_yaw
+      - r_knee
+      - r_ankle_pitch
+      - r_ankle_roll

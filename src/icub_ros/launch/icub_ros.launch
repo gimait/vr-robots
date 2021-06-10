@@ -1,17 +1,6 @@
 <launch>
     <rosparam file="$(find icub_ros)/config/params.yaml" command="load"/>
-
     <node pkg="icub_ros" name="tcp_server_endpoint" type="tcp_server_endpoint.py" args="--wait" output="screen" respawn="true" />
     <node pkg="icub_ros" name="icub_trajectory_planner" type="icub_trajectory_planner" args="--wait" output="screen"/>
-
-    <!-- <arg name="urdf_without_meshes" default="false" />
-    <include file="$(find niryo_moveit)/launch/niryo_one_base.launch" pass_all_args="true"/>
-
-    <include file="$(find niryo_moveit)/launch/controllers.launch">
-        <arg name="simulation_mode" value="true" />
-    </include> -->
-
-    <include file="$(find icub_moveit)/launch/move_group.launch" />
-    <param name="move_group/trajectory_execution/execution_duration_monitoring" value="false" />
-
+    <include file="$(find icub_moveit)/launch/demo.launch" />
 </launch>
