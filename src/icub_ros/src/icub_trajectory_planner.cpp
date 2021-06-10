@@ -36,7 +36,7 @@ TrajectoryPlanner::TrajectoryPlanner()
 bool TrajectoryPlanner::planTrajectoryService(icub_ros::MoveService::Request &req, icub_ros::MoveService::Response &res)
 {
   sensor_msgs::JointState js;
-  js.name = req.joint_names;
+  js.name = req.link_names;
   js.position = req.joint_positions;
   moveit_msgs::RobotState rs;
   rs.joint_state = js;
@@ -74,7 +74,8 @@ int main(int argc, char **argv)
   TrajectoryPlanner planner;
 
   ROS_INFO("Trajectory planner is ready.");
-  ros::spin();
-
+  ros::AsyncSpinner spinner(2);
+  spinner.start();
+  ros::waitForShutdown();
   return 0;
 }
