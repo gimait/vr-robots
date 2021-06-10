@@ -36,8 +36,8 @@ TrajectoryPlanner::TrajectoryPlanner()
 
 ros::V_string TrajectoryPlanner::getJointsForLinks(ros::V_string links)
 {
-  ros::V_string joint_list = move_group_interface->getJointNames();
-  ros::V_string link_list = move_group_interface->getLinkNames();
+  ros::V_string joint_list = move_group_interface->getRobotModel()->getJointModelNames();
+  ros::V_string link_list = move_group_interface->getRobotModel()->getLinkModelNames();
   ros::V_string output = ros::V_string();
 
   for (std::string ln : links)
@@ -71,8 +71,7 @@ bool TrajectoryPlanner::planTrajectoryService(icub_ros::MoveService::Request &re
 
   // We can get a list of all the groups in the robot:
   ROS_INFO_NAMED("tutorial", "Available Planning Groups:");
-  std::copy(move_group_interface->getJointModelGroupNames().begin(),
-            move_group_interface->getJointModelGroupNames().end(), std::ostream_iterator<std::string>(std::cout, ", "));
+  std::copy(js.name.begin(), js.name.end(), std::ostream_iterator<std::string>(std::cout, ", "));
 
   move_group_interface->setStartState(rs);
   move_group_interface->setPoseTarget(target);
