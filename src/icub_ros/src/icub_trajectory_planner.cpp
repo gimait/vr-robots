@@ -19,6 +19,7 @@ class TrajectoryPlanner
 public:
   TrajectoryPlanner();
   bool planTrajectoryService(icub_ros::MoveService::Request &req, icub_ros::MoveService::Response &res);
+  ros::V_string getJointsForLinks(ros::V_string links);
 
 private:
   ros::ServiceServer plan_trajectory_service;
@@ -33,10 +34,27 @@ TrajectoryPlanner::TrajectoryPlanner()
       new moveit::planning_interface::MoveGroupInterface(RIGHT_ARM_GROUP));
 }
 
+ros::V_string TrajectoryPlanner::getJointsForLinks(ros::V_string links)
+{
+  ros::V_string joint_list = move_group_interface->getJointNames();
+  ros::V_string link_list = move_group_interface->getLinkNames();
+  ros::V_string output = ros::V_string();
+
+  for (std::string ln : links)
+  {
+    size_t link_pos = distance(link_list.begin(), find(link_list.begin(), link_list.end(), ln));
+    if (link_pos < joint_list.size())
+    {
+      output.push_back(joint_list[link_pos]);
+    }
+  }
+  return output;
+}
+
 bool TrajectoryPlanner::planTrajectoryService(icub_ros::MoveService::Request &req, icub_ros::MoveService::Response &res)
 {
   sensor_msgs::JointState js;
-  js.name = req.link_names;
+  js.name = this->getJointsForLinks(req.link_names);
   js.position = req.joint_positions;
   moveit_msgs::RobotState rs;
   rs.joint_state = js;
