@@ -64,13 +64,21 @@ bool TrajectoryPlanner::planTrajectoryService(icub_ros::MoveService::Request &re
   target.position.y = req.target_object.y;
   target.position.z = req.target_object.z;
 
-  ROS_INFO_NAMED("tutorial", "Planning frame: %s", move_group_interface->getPlanningFrame().c_str());
+  std::vector<double> ik_seed_state = move_group_interface->getCurrentJointValues();
+  std::vector<double> solution;
+  moveit_msgs::MoveItErrorCodes error_code;
+  kinematics::KinematicsQueryOptions options = kinematics::KinematicsQueryOptions();
+  // Check if target is reachable.
+  // TODO: if target is not reachable, calculate closest position to target that follows point direction.
+  if (!move_group_interface->getRobotModel()
+           ->getJointModelGroup(RIGHT_ARM_GROUP)
+           ->getSolverInstance()
+           ->getPositionIK(target, ik_seed_state, solution, error_code, options))
+  {
+    return false;
+  }
 
-  // We can also print the name of the end-effector link for this group.
-  ROS_INFO_NAMED("tutorial", "End effector link: %s", move_group_interface->getEndEffectorLink().c_str());
-
-  // We can get a list of all the groups in the robot:
-  ROS_INFO_NAMED("tutorial", "Available Planning Groups:");
+  // Print names of used joints.
   std::copy(js.name.begin(), js.name.end(), std::ostream_iterator<std::string>(std::cout, ", "));
 
   move_group_interface->setStartState(rs);
