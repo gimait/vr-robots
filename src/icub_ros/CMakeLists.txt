@@ -99,6 +99,7 @@ catkin_package( CATKIN_DEPENDS
   message_runtime
   moveit_core
   moveit_ros_planning_interface
+  INCLUDE_DIRS include
 )
 
 ###########
@@ -107,9 +108,9 @@ catkin_package( CATKIN_DEPENDS
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
+include_directories(include)
 include_directories(
-# include
-${catkin_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -135,7 +136,7 @@ add_executable(icub_trajectory_planner src/icub_trajectory_planner.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(icub_trajectory_planner ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(icub_trajectory_planner
@@ -189,10 +190,8 @@ catkin_install_python(PROGRAMS
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_icub_ros.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
+
+catkin_add_gtest(test_geometry test/geometry_test.cpp)
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
