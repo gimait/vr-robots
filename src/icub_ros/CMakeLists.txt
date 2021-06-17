@@ -190,8 +190,10 @@ catkin_install_python(PROGRAMS
 #############
 
 ## Add gtest based cpp test target and link libraries
-
 catkin_add_gtest(test_geometry test/geometry_test.cpp)
+if(TARGET test_geometry)
+  target_link_libraries(test_geometry ${catkin_LIBRARIES} )
+endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

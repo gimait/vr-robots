@@ -4,10 +4,8 @@
 
 geometry_msgs::Point closest_point(geometry_msgs::Point tp, geometry_msgs::Quaternion tr, geometry_msgs::Point bp)
 {
-  Eigen::Quaternionf qr = Eigen::Quaternionf(tr.w, tr.x, tr.y, tr.z);
-  auto ea = qr.toRotationMatrix().eulerAngles(0, 1, 2);
-  // Direction of z axis after rotation.
-  auto vr = Eigen::Vector3f(sin(ea.y()) * sin(ea.z()), cos(ea.y()) * sin(ea.z()), cos(ea.z()));
+  Eigen::Quaterniond qr = Eigen::Quaterniond(tr.w, tr.x, tr.y, tr.z);
+  auto vr = qr * Eigen::Vector3d(1, 0, 0);
   double a = vr.x() * (bp.x - tp.x) + vr.y() * (bp.y - tp.y) + vr.z() * (bp.z - tp.z);
   a /= vr.x() * vr.x() + vr.y() * vr.y() + vr.z() * vr.z();
 
