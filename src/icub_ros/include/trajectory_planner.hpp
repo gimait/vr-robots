@@ -13,10 +13,11 @@ public:
   TrajectoryPlanner(std::string move_group);
 
   bool planTrajectoryService(icub_ros::MoveService::Request &req, icub_ros::MoveService::Response &res);
+  void startService();
   ros::V_string getJointsForLinks(ros::V_string links);
   geometry_msgs::Pose calculateTargetPosition(geometry_msgs::Pose original);
 
-private:
+protected:
   std::string m_move_group;
   ros::ServiceServer m_plan_trajectory_service;
   moveit::planning_interface::MoveGroupInterfacePtr m_move_group_interface;
@@ -25,10 +26,14 @@ private:
 TrajectoryPlanner::TrajectoryPlanner(std::string move_group)
 {
   m_move_group = move_group;
-  ros::NodeHandle nh("~");
-  m_plan_trajectory_service = nh.advertiseService("plan_trajectory", &TrajectoryPlanner::planTrajectoryService, this);
   m_move_group_interface =
       moveit::planning_interface::MoveGroupInterfacePtr(new moveit::planning_interface::MoveGroupInterface(move_group));
+}
+
+void TrajectoryPlanner::startService()
+{
+  ros::NodeHandle nh("~");
+  m_plan_trajectory_service = nh.advertiseService("plan_trajectory", &TrajectoryPlanner::planTrajectoryService, this);
 }
 
 ros::V_string TrajectoryPlanner::getJointsForLinks(ros::V_string links)
@@ -88,6 +93,9 @@ bool TrajectoryPlanner::planTrajectoryService(icub_ros::MoveService::Request &re
   js.position = req.joint_positions;
   moveit_msgs::RobotState rs;
   rs.joint_state = js;
+  m_move_group_interface->setStartState(rs);
+
+  geometry_msgs::Pose current_pose = this->m_move_group_interface->getCurrentPose().pose;
 
   geometry_msgs::Pose target = this->calculateTargetPosition(req.target_pose);
 
@@ -99,7 +107,6 @@ bool TrajectoryPlanner::planTrajectoryService(icub_ros::MoveService::Request &re
   // Print names of used joints.
   std::copy(js.name.begin(), js.name.end(), std::ostream_iterator<std::string>(std::cout, ", "));
 
-  m_move_group_interface->setStartState(rs);
   m_move_group_interface->setPoseTarget(target);
 
   moveit::planning_interface::MoveGroupInterface::Plan new_plan;

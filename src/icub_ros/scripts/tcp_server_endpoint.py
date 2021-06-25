@@ -3,7 +3,7 @@
 import rospy
 
 from ros_tcp_endpoint import TcpServer, RosPublisher, RosService, RosSubscriber
-from icub_ros.msg import Target
+from geometry_msgs.msg import Pose
 from icub_ros.srv import MoveService
 from moveit_msgs.msg import RobotTrajectory
 
@@ -16,7 +16,7 @@ def main():
     rospy.init_node(ros_node_name, anonymous=True)
 
     tcp_server.start({
-        'target_position': RosPublisher('target_position', Target, queue_size=10),
+        'target_position': RosPublisher('target_position', Pose, queue_size=10),
         'Trajectory': RosSubscriber('iCubTrajectory', RobotTrajectory, tcp_server),
         'icub_moveit': RosService('icub_trajectory_planner/plan_trajectory', MoveService),
     })
