@@ -1,5 +1,5 @@
 string[] link_names
 float64[] joint_positions
-Target target_object
+geometry_msgs/Pose target_pose
 ---
 moveit_msgs/RobotTrajectory[] trajectories

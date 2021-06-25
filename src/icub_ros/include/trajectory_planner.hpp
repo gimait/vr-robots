@@ -89,12 +89,7 @@ bool TrajectoryPlanner::planTrajectoryService(icub_ros::MoveService::Request &re
   moveit_msgs::RobotState rs;
   rs.joint_state = js;
 
-  geometry_msgs::Pose target;
-  target.position.x = req.target_object.x;
-  target.position.y = req.target_object.y;
-  target.position.z = req.target_object.z;
-
-  target = this->calculateTargetPosition(target);
+  geometry_msgs::Pose target = this->calculateTargetPosition(req.target_pose);
 
   std::vector<double> ik_seed_state = m_move_group_interface->getCurrentJointValues();
   std::vector<double> solution;
