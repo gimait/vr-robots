@@ -15,7 +15,9 @@ public:
   bool planTrajectoryService(icub_ros::MoveService::Request &req, icub_ros::MoveService::Response &res);
   void startService();
   ros::V_string getJointsForLinks(ros::V_string links);
-  geometry_msgs::Pose calculateTargetPosition(geometry_msgs::Pose original);
+  geometry_msgs::Pose calculateTargetPosition(geometry_msgs::Pose target, geometry_msgs::Pose origin);
+  std::vector<geometry_msgs::Pose> calculateLinearPath(geometry_msgs::Pose target, geometry_msgs::Pose origin,
+                                                       size_t steps);
 
 protected:
   std::string m_move_group;
@@ -53,37 +55,64 @@ ros::V_string TrajectoryPlanner::getJointsForLinks(ros::V_string links)
   return output;
 }
 
-geometry_msgs::Pose TrajectoryPlanner::calculateTargetPosition(geometry_msgs::Pose origin)
+std::vector<geometry_msgs::Pose> TrajectoryPlanner::calculateLinearPath(geometry_msgs::Pose target,
+                                                                        geometry_msgs::Pose origin, size_t steps)
+{
+  std::vector<geometry_msgs::Pose> linespace;
+  geometry_msgs::Pose step_size;
+  step_size.position.x = (target.position.x - origin.position.x) / steps;
+  step_size.position.y = (target.position.y - origin.position.y) / steps;
+  step_size.position.z = (target.position.z - origin.position.z) / steps;
+  step_size.orientation.w = (target.orientation.w - origin.orientation.w) / steps;
+  step_size.orientation.x = (target.orientation.x - origin.orientation.x) / steps;
+  step_size.orientation.y = (target.orientation.y - origin.orientation.y) / steps;
+  step_size.orientation.z = (target.orientation.z - origin.orientation.z) / steps;
+
+  // Linespace without including target and current positions.
+  for (int i = 1; i < steps; i++)
+  {
+    geometry_msgs::Pose step;
+    step.position.x = step_size.position.x * i + origin.position.x;
+    step.position.y = step_size.position.y * i + origin.position.y;
+    step.position.z = step_size.position.z * i + origin.position.z;
+    step.orientation.w = step_size.orientation.w * i + origin.orientation.w;
+    step.orientation.x = step_size.orientation.x * i + origin.orientation.x;
+    step.orientation.y = step_size.orientation.y * i + origin.orientation.y;
+    step.orientation.z = step_size.orientation.z * i + origin.orientation.z;
+
+    linespace.push_back(step);
+  }
+
+  return linespace;
+}
+
+geometry_msgs::Pose TrajectoryPlanner::calculateTargetPosition(geometry_msgs::Pose target, geometry_msgs::Pose origin)
 {
   const robot_state::JointModelGroup *joint_model_group =
       this->m_move_group_interface->getRobotModel()->getJointModelGroup(m_move_group);
 
   // Return if the target is already reachable.
-  if (this->m_move_group_interface->getCurrentState()->setFromIK(joint_model_group, origin))
+  if (this->m_move_group_interface->getCurrentState()->setFromIK(joint_model_group, target))
   {
-    return origin;
+    return target;
   }
 
-  // Transform the target position to a closer point within the range of the robot.
-  // Note: I am calculating the closest point between the end effector and the target pose.
-  // We should reconsider wether this point or the base of the move_group should be used to find the target
-  // position.
-  geometry_msgs::Point closest_to_end =
-      closest_point(origin.position, origin.orientation, this->m_move_group_interface->getCurrentPose().pose.position);
+  // Generate a path by creating a set of angles that move incrementally towards the goal (in a line) from the current
+  // pose.
 
-  geometry_msgs::Pose target;
-  target.orientation = origin.orientation;
-  target.position = closest_to_end;
+  std::vector<geometry_msgs::Pose> possible = this->calculateLinearPath(target, origin, 100);
 
-  if (!this->m_move_group_interface->getCurrentState()->setFromIK(joint_model_group, target))
+  // Check backwards all calculated poses until we find a reachable one.
+  for (auto pose = possible.rbegin(); pose != possible.rend(); ++pose)
   {
-    throw std::logic_error("Unable to find a valid target pose.");
+    if (this->m_move_group_interface->getCurrentState()->setFromIK(joint_model_group, *pose))
+    {
+      return *pose;
+    }
   }
-  else
-  {
-    // Iterate until we find the closest reachable point in the line.
-  }
-  return target;
+
+  // At least the current should be reachable.
+  return origin;
 }
 
 bool TrajectoryPlanner::planTrajectoryService(icub_ros::MoveService::Request &req, icub_ros::MoveService::Response &res)
@@ -97,7 +126,7 @@ bool TrajectoryPlanner::planTrajectoryService(icub_ros::MoveService::Request &re
 
   geometry_msgs::Pose current_pose = this->m_move_group_interface->getCurrentPose().pose;
 
-  geometry_msgs::Pose target = this->calculateTargetPosition(req.target_pose);
+  geometry_msgs::Pose target = this->calculateTargetPosition(req.target_pose, current_pose);
 
   std::vector<double> ik_seed_state = m_move_group_interface->getCurrentJointValues();
   std::vector<double> solution;
