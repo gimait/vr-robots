@@ -15,6 +15,7 @@ public:
   bool planTrajectoryService(icub_ros::MoveService::Request &req, icub_ros::MoveService::Response &res);
   void startService();
   ros::V_string getJointsForLinks(ros::V_string links);
+  ros::V_string TrajectoryPlanner::getLinksForJoints(ros::V_string joints);
   geometry_msgs::Pose calculateTargetPosition(geometry_msgs::Pose target, geometry_msgs::Pose origin);
   std::vector<geometry_msgs::Pose> calculateLinearPath(geometry_msgs::Pose target, geometry_msgs::Pose origin,
                                                        size_t steps);
@@ -23,6 +24,10 @@ protected:
   std::string m_move_group;
   ros::ServiceServer m_plan_trajectory_service;
   moveit::planning_interface::MoveGroupInterfacePtr m_move_group_interface;
+
+  ros::V_string TrajectoryPlanner::convertBetweenLists(ros::V_string s_list,
+                                                      ros::V_string from_list,
+                                                      ros::V_string to_list);
 };
 
 TrajectoryPlanner::TrajectoryPlanner(std::string move_group)
@@ -40,16 +45,30 @@ void TrajectoryPlanner::startService()
 
 ros::V_string TrajectoryPlanner::getJointsForLinks(ros::V_string links)
 {
-  ros::V_string joint_list = m_move_group_interface->getRobotModel()->getJointModelNames();
-  ros::V_string link_list = m_move_group_interface->getRobotModel()->getLinkModelNames();
+  return this->convertBetweenLists(links,
+                                   m_move_group_interface->getRobotModel()->getLinkModelNames(),
+                                   m_move_group_interface->getRobotModel()->getJointModelNames());
+}
+
+ros::V_string TrajectoryPlanner::getLinksForJoints(ros::V_string joints)
+{
+  return this->convertBetweenLists(joints,
+                                  m_move_group_interface->getRobotModel()->getJointModelNames(),
+                                  m_move_group_interface->getRobotModel()->getLinkModelNames());
+}
+
+ros::V_string TrajectoryPlanner::convertBetweenLists(ros::V_string s_list,
+                                                     ros::V_string from_list,
+                                                     ros::V_string to_list)
+{
   ros::V_string output = ros::V_string();
 
-  for (std::string ln : links)
+  for (std::string s : joints)
   {
-    size_t link_pos = distance(link_list.begin(), find(link_list.begin(), link_list.end(), ln));
-    if (link_pos < joint_list.size())
+    size_t joint_pos = distance(from_list.begin(), find(from_list.begin(), from_list.end(), s));
+    if (joint_pos < to_list.size())
     {
-      output.push_back(joint_list[link_pos]);
+      output.push_back(to_list[joint_pos]);
     }
   }
   return output;
