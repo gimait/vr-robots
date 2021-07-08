@@ -74,8 +74,7 @@ std::vector<geometry_msgs::Pose> calculateLinearPath(geometry_msgs::Pose target,
     step.position.x = step_size.position.x * i + origin.position.x;
     step.position.y = step_size.position.y * i + origin.position.y;
     step.position.z = step_size.position.z * i + origin.position.z;
-    step.orientation =
-        quaternion_interpolation(origin.orientation, target.orientation, 1.0 / double(steps) * double(i));
+    step.orientation = target.orientation;
     linespace.push_back(step);
   }
 
