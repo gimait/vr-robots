@@ -2,6 +2,7 @@
 #include <tf2/LinearMath/Quaternion.h>
 
 #include <Eigen/Geometry>
+#include <algorithm>
 
 geometry_msgs::Point closest_point(geometry_msgs::Point tp, geometry_msgs::Quaternion tr, geometry_msgs::Point bp)
 {
@@ -19,16 +20,22 @@ geometry_msgs::Point closest_point(geometry_msgs::Point tp, geometry_msgs::Quate
 }
 
 std::vector<geometry_msgs::Pose> calculateLinearPath(geometry_msgs::Pose target, geometry_msgs::Pose origin,
-                                                     size_t steps)
+                                                     size_t steps, double min_step_size = 0.1)
 {
   std::vector<geometry_msgs::Pose> linespace;
   geometry_msgs::Pose step_size;
-  step_size.position.x = (target.position.x - origin.position.x) / steps;
-  step_size.position.y = (target.position.y - origin.position.y) / steps;
-  step_size.position.z = (target.position.z - origin.position.z) / steps;
+  step_size.position.x = std::min((target.position.x - origin.position.x) / steps, min_step_size);
+  step_size.position.y = std::min((target.position.y - origin.position.y) / steps, min_step_size);
+  step_size.position.z = std::min((target.position.z - origin.position.z) / steps, min_step_size);
+
+  // Limit number of steps calculated.
+  double distance = sqrt(pow(target.position.x - origin.position.x, 2) + pow(target.position.y - origin.position.y, 2) +
+                         pow(target.position.z = origin.position.z, 2));
+  double step_dist = sqrt(pow(step_size.position.x, 2) + pow(step_size.position.y, 2) + pow(step_size.position.z, 2));
+  int n_position_steps = distance / step_dist;
 
   // Linespace without including target and current positions.
-  for (int i = 1; i < steps; i++)
+  for (int i = 1; i < n_position_steps; i++)
   {
     geometry_msgs::Pose step;
     step.position.x = step_size.position.x * i + origin.position.x;

@@ -77,6 +77,11 @@ geometry_msgs::Pose TrajectoryPlanner::calculateTargetPosition(geometry_msgs::Po
   return calculateTargetPosition(target, tf2::toMsg(origin));
 }
 
+// TODO: Atm, the target position calculated is quite limited, but it would be possible to upgrade it by combining
+// the use of a Position and Orientation targets individually if the Pose is not reachable:
+// If the pose is reachable, return it.
+// If it's not, calculate the point closest to target that the hand can reach, plan to that position, then calculate
+// closest orientation to target, add the new plan for it.
 geometry_msgs::Pose TrajectoryPlanner::calculateTargetPosition(geometry_msgs::Pose target, geometry_msgs::Pose origin)
 {
   const robot_state::JointModelGroup *joint_model_group =
@@ -124,13 +129,13 @@ bool TrajectoryPlanner::planTrajectoryService(icub_ros::MoveService::Request &re
   m_move_group_interface->setPoseTarget(target);
 
   moveit::planning_interface::MoveGroupInterface::Plan new_plan;
-  bool success = (m_move_group_interface->plan(new_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
 
-  if (success)
+  if (m_move_group_interface->plan(new_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS)
   {
     new_plan.trajectory_.joint_trajectory.joint_names =
         getLinksForJoints(new_plan.trajectory_.joint_trajectory.joint_names);
     res.trajectories.push_back(new_plan.trajectory_);
+
     return true;
   }
   else
