@@ -8,10 +8,17 @@
 #include "geometry.hpp"
 #include "icub_ros/MoveService.h"
 
+enum TargetType
+{
+  Pose,
+  Position,
+  Orientation
+};
+
 class TrajectoryPlanner
 {
 public:
-  TrajectoryPlanner(std::string move_group);
+  TrajectoryPlanner(std::string move_group, TargetType target = TargetType::Pose);
 
   bool planTrajectoryService(icub_ros::MoveService::Request &req, icub_ros::MoveService::Response &res);
   void startService();
@@ -21,6 +28,7 @@ public:
   geometry_msgs::Pose calculateTargetPosition(geometry_msgs::Pose target, geometry_msgs::Pose origin);
 
 protected:
+  TargetType m_target;
   std::string m_move_group;
   ros::ServiceServer m_plan_trajectory_service;
   moveit::planning_interface::MoveGroupInterfacePtr m_move_group_interface;
@@ -29,8 +37,9 @@ protected:
   ros::V_string convertBetweenLists(ros::V_string s_list, ros::V_string from_list, ros::V_string to_list);
 };
 
-TrajectoryPlanner::TrajectoryPlanner(std::string move_group)
+TrajectoryPlanner::TrajectoryPlanner(std::string move_group, TargetType target)
 {
+  m_target = target;
   m_move_group = move_group;
   m_move_group_interface =
       moveit::planning_interface::MoveGroupInterfacePtr(new moveit::planning_interface::MoveGroupInterface(move_group));
@@ -40,7 +49,7 @@ TrajectoryPlanner::TrajectoryPlanner(std::string move_group)
 
 void TrajectoryPlanner::startService()
 {
-  ros::NodeHandle nh("~");
+  ros::NodeHandle nh("~/" + m_move_group);
   m_plan_trajectory_service = nh.advertiseService("plan_trajectory", &TrajectoryPlanner::planTrajectoryService, this);
 }
 

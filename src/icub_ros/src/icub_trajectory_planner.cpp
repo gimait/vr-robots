@@ -14,8 +14,14 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "icub_trajectory_planner");
 
-  TrajectoryPlanner planner(RIGHT_ARM_GROUP);
-  planner.startService();
+  TrajectoryPlanner arm_planner(RIGHT_ARM_GROUP);
+  TrajectoryPlanner head_planner(HEAD_GROUP, TargetType::Orientation);
+  TrajectoryPlanner eyel_planner(LEFT_EYE_GROUP, TargetType::Orientation);
+  TrajectoryPlanner eyer_planner(RIGHT_EYE_GROUP, TargetType::Orientation);
+  arm_planner.startService();
+  head_planner.startService();
+  eyel_planner.startService();
+  eyer_planner.startService();
 
   ROS_INFO("Trajectory planner is ready.");
   ros::AsyncSpinner spinner(2);

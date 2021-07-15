@@ -18,7 +18,10 @@ def main():
     tcp_server.start({
         'target_position': RosPublisher('target_position', Pose, queue_size=10),
         'Trajectory': RosSubscriber('iCubTrajectory', RobotTrajectory, tcp_server),
-        'icub_moveit': RosService('icub_trajectory_planner/plan_trajectory', MoveService),
+        'icub_moveit_RightArm': RosService('icub_trajectory_planner/RightArm/plan_trajectory', MoveService),
+        'icub_moveit_LeftEye': RosService('icub_trajectory_planner/LeftEye/plan_trajectory', MoveService),
+        'icub_moveit_RightEye': RosService('icub_trajectory_planner/RightEye/plan_trajectory', MoveService),
+        'icub_moveit_Head': RosService('icub_trajectory_planner/Head/plan_trajectory', MoveService),
     })
 
     rospy.spin()
