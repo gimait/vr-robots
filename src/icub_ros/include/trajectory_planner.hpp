@@ -129,13 +129,27 @@ bool TrajectoryPlanner::planTrajectoryService(icub_ros::MoveService::Request &re
   m_kinematic_state->setJointGroupPositions(joint_model_group, req.joint_positions);
   m_move_group_interface->setStartState(rs);
 
-  geometry_msgs::Pose target = calculateTargetPosition(
-      req.target_pose, m_kinematic_state->getGlobalLinkTransform(m_move_group_interface->getEndEffectorLink()));
+  switch (m_target)
+  {
+    case Pose:
+    {
+      geometry_msgs::Pose target = calculateTargetPosition(
+          req.target_pose, m_kinematic_state->getGlobalLinkTransform(m_move_group_interface->getEndEffectorLink()));
 
-  moveit_msgs::MoveItErrorCodes error_code;
-  kinematics::KinematicsQueryOptions options = kinematics::KinematicsQueryOptions();
-
-  m_move_group_interface->setPoseTarget(target);
+      m_move_group_interface->setPoseTarget(target);
+      break;
+    }
+    case Position:
+      m_move_group_interface->setPositionTarget(req.target_pose.position.x, req.target_pose.position.y,
+                                                req.target_pose.position.z);
+      break;
+    case Orientation:
+      m_move_group_interface->setOrientationTarget(req.target_pose.orientation.x, req.target_pose.orientation.y,
+                                                   req.target_pose.orientation.z, req.target_pose.orientation.w);
+      break;
+    default:
+      return false;
+  }
 
   moveit::planning_interface::MoveGroupInterface::Plan new_plan;
 
