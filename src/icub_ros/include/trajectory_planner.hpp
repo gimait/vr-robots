@@ -24,8 +24,8 @@ public:
   void startService();
   ros::V_string getJointsForLinks(ros::V_string links);
   ros::V_string getLinksForJoints(ros::V_string joints);
-  geometry_msgs::Pose calculateTargetPosition(geometry_msgs::Pose target, Eigen::Isometry3d origin);
-  geometry_msgs::Pose calculateTargetPosition(geometry_msgs::Pose target, geometry_msgs::Pose origin);
+  geometry_msgs::Pose calculateTargetPose(geometry_msgs::Pose target, Eigen::Isometry3d origin);
+  geometry_msgs::Pose calculateTargetPose(geometry_msgs::Pose target, geometry_msgs::Pose origin);
 
 protected:
   TargetType m_target;
@@ -35,6 +35,7 @@ protected:
   moveit::core::RobotModelConstPtr m_kinematic_model;
   moveit::core::RobotStatePtr m_kinematic_state;
   ros::V_string convertBetweenLists(ros::V_string s_list, ros::V_string from_list, ros::V_string to_list);
+  bool planTrajectory(moveit_msgs::RobotTrajectory &trajectory);
 };
 
 TrajectoryPlanner::TrajectoryPlanner(std::string move_group, TargetType target)
@@ -81,9 +82,9 @@ ros::V_string TrajectoryPlanner::convertBetweenLists(ros::V_string s_list, ros::
   return output;
 }
 
-geometry_msgs::Pose TrajectoryPlanner::calculateTargetPosition(geometry_msgs::Pose target, Eigen::Isometry3d origin)
+geometry_msgs::Pose TrajectoryPlanner::calculateTargetPose(geometry_msgs::Pose target, Eigen::Isometry3d origin)
 {
-  return calculateTargetPosition(target, tf2::toMsg(origin));
+  return calculateTargetPose(target, tf2::toMsg(origin));
 }
 
 // TODO: Atm, the target position calculated is quite limited, but it would be possible to upgrade it by combining
@@ -91,7 +92,7 @@ geometry_msgs::Pose TrajectoryPlanner::calculateTargetPosition(geometry_msgs::Po
 // If the pose is reachable, return it.
 // If it's not, calculate the point closest to target that the hand can reach, plan to that position, then calculate
 // closest orientation to target, add the new plan for it.
-geometry_msgs::Pose TrajectoryPlanner::calculateTargetPosition(geometry_msgs::Pose target, geometry_msgs::Pose origin)
+geometry_msgs::Pose TrajectoryPlanner::calculateTargetPose(geometry_msgs::Pose target, geometry_msgs::Pose origin)
 {
   const robot_state::JointModelGroup *joint_model_group =
       m_move_group_interface->getRobotModel()->getJointModelGroup(m_move_group);
@@ -129,35 +130,57 @@ bool TrajectoryPlanner::planTrajectoryService(icub_ros::MoveService::Request &re
   m_kinematic_state->setJointGroupPositions(joint_model_group, req.joint_positions);
   m_move_group_interface->setStartState(rs);
 
+  Eigen::Isometry3d end_effector_link =
+      m_kinematic_state->getGlobalLinkTransform(m_move_group_interface->getEndEffectorLink());
+
+  moveit_msgs::RobotTrajectory trajectory;
+
   switch (m_target)
   {
     case Pose:
-    {
-      geometry_msgs::Pose target = calculateTargetPosition(
-          req.target_pose, m_kinematic_state->getGlobalLinkTransform(m_move_group_interface->getEndEffectorLink()));
-
-      m_move_group_interface->setPoseTarget(target);
+      m_move_group_interface->setPoseTarget(calculateTargetPose(req.target_pose, end_effector_link));
+      if (planTrajectory(trajectory))
+      {
+        res.trajectories.push_back(trajectory);
+        return true;
+      }
       break;
-    }
     case Position:
-      m_move_group_interface->setPositionTarget(req.target_pose.position.x, req.target_pose.position.y,
-                                                req.target_pose.position.z);
       break;
     case Orientation:
-      m_move_group_interface->setOrientationTarget(req.target_pose.orientation.x, req.target_pose.orientation.y,
-                                                   req.target_pose.orientation.z, req.target_pose.orientation.w);
-      break;
-    default:
-      return false;
-  }
+    {
+      Eigen::Quaterniond t_q;
+      tf2::fromMsg(req.target_pose.orientation, t_q);
+      Eigen::Quaterniond o_q(end_effector_link.rotation());
+      double ang_distance = t_q.angularDistance(o_q);
+      double step_size = std::max(0.01, ang_distance / 20);
+      int steps = ang_distance / step_size;
 
+      for (int i = 0; i < steps; i++)
+      {
+        Eigen::Quaterniond tgt = t_q.slerp(i * step_size, o_q);
+        m_move_group_interface->setOrientationTarget(tgt.x(), tgt.y(), tgt.z(), tgt.w());
+        if (planTrajectory(trajectory))
+        {
+          res.trajectories.push_back(trajectory);
+          return true;
+        }
+      }
+      break;
+    }
+  }
+  return false;
+}
+
+bool TrajectoryPlanner::planTrajectory(moveit_msgs::RobotTrajectory &trajectory)
+{
   moveit::planning_interface::MoveGroupInterface::Plan new_plan;
 
   if (m_move_group_interface->plan(new_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS)
   {
     new_plan.trajectory_.joint_trajectory.joint_names =
         getLinksForJoints(new_plan.trajectory_.joint_trajectory.joint_names);
-    res.trajectories.push_back(new_plan.trajectory_);
+    trajectory = new_plan.trajectory_;
 
     return true;
   }
